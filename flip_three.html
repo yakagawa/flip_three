@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>カードめくりゲーム</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0;
+      background: #228B22;               /* テーブル風グリーン */
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      border: 2px solid #000;
+      background: #228B22;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const CARD_W = 120, CARD_H = 180;
+    const MARGIN = 20;
+    const SLOT_COUNT = 3;
+    const numbers = [1,2,3,4,5,6,7,8,9];
+
+    // カードスロット座標を計算
+    const totalW = SLOT_COUNT * CARD_W + (SLOT_COUNT - 1) * MARGIN;
+    const startX = (canvas.width - totalW) / 2;
+    const startY = (canvas.height - CARD_H) / 2;
+    const slots = [];
+    for (let i = 0; i < SLOT_COUNT; i++) {
+      slots.push({ x: startX + i * (CARD_W + MARGIN), y: startY });
+    }
+
+    let cards = [];        // 選ばれた数字
+    let isFlipped = false; // false: 裏向き, true: 表向き
+
+    // ランダムに３枚選ぶ・ソート
+    function pickCards() {
+      const arr = [...numbers];
+      const picked = [];
+      for (let i = 0; i < SLOT_COUNT; i++) {
+        const idx = Math.floor(Math.random() * arr.length);
+        picked.push(arr.splice(idx,1)[0]);
+      }
+      picked.sort((a,b)=>a-b);
+      return picked;
+    }
+
+    // 描画
+    function draw() {
+      // 背景クリア
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < SLOT_COUNT; i++) {
+        const {x,y} = slots[i];
+        // 裏向き or 表向き
+        if (!isFlipped) {
+          ctx.fillStyle = '#C8C8C8';           // 裏：グレー
+        } else {
+          ctx.fillStyle = '#fff';              // 表：白
+        }
+        ctx.fillRect(x, y, CARD_W, CARD_H);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(x, y, CARD_W, CARD_H);
+
+        if (isFlipped) {
+          // 数字を描く
+          ctx.fillStyle = '#000';
+          ctx.font = 'bold 72px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(cards[i], x + CARD_W/2, y + CARD_H/2);
+        }
+      }
+    }
+
+    // クリックでめくる
+    canvas.addEventListener('click', () => {
+      cards = pickCards();
+      isFlipped = true;
+      draw();
+    });
+
+    // 初期描画（裏向き）
+    draw();
+  </script>
+</body>
+</html>
